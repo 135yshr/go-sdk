@@ -452,9 +452,6 @@ func (ep *Endpoint) Stream(input *StreamInput, outputChan chan<- StreamResult) e
 			}
 		}
 	}
-
-	return nil
-
 }
 
 func streamApiCall(ctx context.Context, ep *Endpoint, url *string, reqTimeout *int) (StreamOutput, error) {
