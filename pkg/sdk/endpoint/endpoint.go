@@ -136,8 +136,6 @@ func (ep *Endpoint) RunSync(input *RunSyncInput) (*RunSyncOutput, error) {
 			}
 		}
 	}
-
-	// return &result, nil
 }
 
 func getStatusSyncURL(ep *Endpoint, id *string, wait int) (*string, error) {
