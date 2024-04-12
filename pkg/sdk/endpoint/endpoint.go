@@ -61,27 +61,16 @@ func (ep *Endpoint) Run(input *RunInput) (*RunOutput, error) {
 }
 
 func (ep *Endpoint) RunSync(input *RunSyncInput) (*RunSyncOutput, error) {
-
-	wait := 90 * 1000
-	var timeout, reqTimeout int
-
+	timeout := 90
 	if input.Timeout != nil {
 		timeout = *input.Timeout
-	} else {
-		timeout = 90
 	}
-
-	if timeout >= 90 {
-		reqTimeout = 90 + 2
-	} else {
-		wait = timeout * 1000
-		reqTimeout = timeout + 2
-	}
+	reqTimeout := timeout + 2
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeout+3)*time.Second)
 	defer cancel()
 
-	url, err := getRunSyncURL(ep, wait)
+	url, err := getRunSyncURL(ep)
 	if err != nil {
 		return nil, err
 	}
@@ -107,7 +96,7 @@ func (ep *Endpoint) RunSync(input *RunSyncInput) (*RunSyncOutput, error) {
 	}
 
 	// request is in queue so fetch using statusSync
-	statusSyncURL, err := getStatusSyncURL(ep, result.Id, wait)
+	statusSyncURL, err := getStatusSyncURL(ep, result.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -138,33 +127,22 @@ func (ep *Endpoint) RunSync(input *RunSyncInput) (*RunSyncOutput, error) {
 	}
 }
 
-func getStatusSyncURL(ep *Endpoint, id *string, wait int) (*string, error) {
-	queryParams := url.Values{}
-	queryParams.Add("wait", strconv.Itoa(wait))
-
+func getStatusSyncURL(ep *Endpoint, id *string) (*string, error) {
 	baseURL := *ep.EndpointUrl + "/" + *ep.EndpointId + "/status-sync/" + *id
-
 	u, err := url.Parse(baseURL)
 	if err != nil {
 		return nil, fmt.Errorf("url parse error: %s", err)
 	}
-	u.RawQuery = queryParams.Encode()
 	url := u.String()
 	return &url, nil
 }
 
-func getRunSyncURL(ep *Endpoint, wait int) (*string, error) {
-
-	queryParams := url.Values{}
-	queryParams.Add("wait", strconv.Itoa(wait))
-
+func getRunSyncURL(ep *Endpoint) (*string, error) {
 	baseURL := *ep.EndpointUrl + "/" + *ep.EndpointId + "/runsync"
-
 	u, err := url.Parse(baseURL)
 	if err != nil {
 		return nil, fmt.Errorf("url parse error: %s", err)
 	}
-	u.RawQuery = queryParams.Encode()
 	url := u.String()
 
 	return &url, nil
@@ -175,23 +153,13 @@ func (ep *Endpoint) StatusSync(input *StatusSyncInput) (*StatusSyncOutput, error
 		return nil, fmt.Errorf("job id is required")
 	}
 
-	wait := 90 * 1000
-	var timeout, reqTimeout int
-
+	timeout := 90
 	if input.Timeout != nil {
 		timeout = *input.Timeout
-	} else {
-		timeout = 90
 	}
+	reqTimeout := timeout + 2
 
-	if timeout >= 90 {
-		reqTimeout = 90 + 2
-	} else {
-		wait = timeout * 1000
-		reqTimeout = timeout + 2
-	}
-
-	statusSyncURL, err := getStatusSyncURL(ep, input.Id, wait)
+	statusSyncURL, err := getStatusSyncURL(ep, input.Id)
 	if err != nil {
 		return nil, err
 	}
